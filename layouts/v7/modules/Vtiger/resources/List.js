@@ -2940,24 +2940,25 @@ Vtiger.Class(
             sourceFieldEle.addClass("hide");
           });
 
-          // Handle fixed column checkbox - limit to 3 columns
+          // Handle fixed column checkbox - only 1 allowed
           selectedFieldsList.on("change", ".fixedColumnCheckbox", function (e) {
             var checkbox = jQuery(e.currentTarget);
-            var checkedCount = selectedFieldsList.find(
-              ".fixedColumnCheckbox:checked"
-            ).length;
 
-            if (checkbox.is(":checked") && checkedCount > 3) {
-              checkbox.prop("checked", false);
-              app.helper.showAlertNotification({
-                message:
-                  app.vtranslate("JS_MAXIMUM_3_FIXED_COLUMNS_ALLOWED") ||
-                  "Maximum 3 columns can be fixed",
-              });
-              return false;
+            if (checkbox.is(":checked")) {
+              // Uncheck all other fixed checkboxes and update their data attributes
+              selectedFieldsList
+                .find(".fixedColumnCheckbox")
+                .not(checkbox)
+                .each(function () {
+                  var otherCheckbox = jQuery(this);
+                  otherCheckbox.prop("checked", false);
+                  // Update data attribute for unchecked items
+                  var otherListItem = otherCheckbox.closest(".item");
+                  otherListItem.attr("data-is-fixed", "0");
+                });
             }
 
-            // Update data attribute
+            // Update data attribute for current checkbox
             var listItem = checkbox.closest(".item");
             listItem.attr("data-is-fixed", checkbox.is(":checked") ? "1" : "0");
           });

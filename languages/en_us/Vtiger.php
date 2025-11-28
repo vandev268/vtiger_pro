@@ -1133,7 +1133,7 @@ $languageStrings = array(
 	'LBL_AVAILABLE_FIELDS' => 'Available Fields',
 	'LBL_SEARCH_FIELDS' => 'Search Fields',
 	'LBL_FIX_COLUMN' => 'Fix Column (Pin during scroll)',
-	'JS_MAXIMUM_3_FIXED_COLUMNS_ALLOWED' => 'Maximum 3 columns can be fixed',
+
 
 	// Extensions
 	'ExtensionStore' =>'Extension Store',
