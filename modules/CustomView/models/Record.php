@@ -487,14 +487,31 @@ class CustomView_Record_Model extends Vtiger_Base_Model {
 		}
 	}
 
-	public function saveSelectedFields($selectedColumnsList){
+	public function saveSelectedFields($selectedColumnsList, $fixedColumnsList = null){
 		if(!empty($selectedColumnsList)) {
 			$db = PearDatabase::getInstance();
 			$cvId = $this->getId();
+			
+			// Decode JSON if needed
+			if(is_string($selectedColumnsList)) {
+				$selectedColumnsList = json_decode($selectedColumnsList, true);
+			}
+			if(is_string($fixedColumnsList)) {
+				$fixedColumnsList = json_decode($fixedColumnsList, true);
+			}
+			
 			$noOfColumns = php7_count($selectedColumnsList);
 			for($i=0; $i<$noOfColumns; $i++) {
-				$columnSql = 'INSERT INTO vtiger_cvcolumnlist (cvid, columnindex, columnname) VALUES (?,?,?)';
-				$columnParams = array($cvId, $i, $selectedColumnsList[$i]);
+				$columnName = $selectedColumnsList[$i];
+				$isFixed = 0;
+				
+				// Check if this column is in fixed list
+				if(!empty($fixedColumnsList) && in_array($columnName, $fixedColumnsList)) {
+					$isFixed = 1;
+				}
+				
+				$columnSql = 'INSERT INTO vtiger_cvcolumnlist (cvid, columnindex, columnname, is_fixed) VALUES (?,?,?,?)';
+				$columnParams = array($cvId, $i, $columnName, $isFixed);
 				$db->pquery($columnSql, $columnParams);
 			}
 		}
@@ -541,7 +558,11 @@ class CustomView_Record_Model extends Vtiger_Base_Model {
 		for($i=0; $i<$noOfFields; ++$i) {
 			$columnIndex = $db->query_result($result, $i, 'columnindex');
 			$columnName = $db->query_result($result, $i, 'columnname');
-			$selectedFields[$columnIndex] = decode_html($columnName);
+			$isFixed = $db->query_result($result, $i, 'is_fixed');
+			$selectedFields[$columnIndex] = array(
+				'columnname' => decode_html($columnName),
+				'is_fixed' => $isFixed
+			);
 		}
 		return $selectedFields;
 	}

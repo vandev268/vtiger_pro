@@ -499,7 +499,12 @@ Vtiger.Class(
       listViewContainer.find("#totalCount").val(""); // Clear cached total count
       listViewContainer.find("#totalCountDisplay").text("..."); // Reset display
       self.updatePagination(); // This will trigger autoLoadTotalCount()
- 
+
+      // Setup fixed columns after list is loaded
+      console.log("Calling setupFixedColumns from postLoadListViewRecords...");
+      setTimeout(function () {
+        self.setupFixedColumns();
+      }, 100);
     },
     placeListContents: function (contents) {
       var container = this.getListViewContainer();
@@ -2457,44 +2462,42 @@ Vtiger.Class(
     registerReloadTotalCountEvent: function () {
       var thisInstance = this;
       var listViewContainer = thisInstance.getListViewContainer();
-      
+
       listViewContainer.on("click", "#reloadTotalCount", function (e) {
         e.stopPropagation();
         var button = jQuery(this);
         var icon = button.find("i");
-        
+
         // Add spinning animation
         icon.addClass("fa-spin");
         button.prop("disabled", true);
-        
+
         // Reload total count
         var totalRecordsElement = listViewContainer.find("#totalCount");
         var totalCountDisplay = listViewContainer.find("#totalCountDisplay");
-        
-        thisInstance
-          .getRecordsCount()
-          .then(
-            function (res) {
-              // Success callback
-              if (res && res.count) {
-                totalRecordsElement.val(res.count);
-                totalCountDisplay.text(res.count);
-                listViewContainer
-                  .find(".totalNumberOfRecordsDisplay")
-                  .removeClass("hide");
-              }
-              // Remove spinning animation
-              icon.removeClass("fa-spin");
-              button.prop("disabled", false);
-            },
-            function (error) {
-              // Error callback
-              totalCountDisplay.text("?");
-              // Remove spinning animation
-              icon.removeClass("fa-spin");
-              button.prop("disabled", false);
+
+        thisInstance.getRecordsCount().then(
+          function (res) {
+            // Success callback
+            if (res && res.count) {
+              totalRecordsElement.val(res.count);
+              totalCountDisplay.text(res.count);
+              listViewContainer
+                .find(".totalNumberOfRecordsDisplay")
+                .removeClass("hide");
             }
-          );
+            // Remove spinning animation
+            icon.removeClass("fa-spin");
+            button.prop("disabled", false);
+          },
+          function (error) {
+            // Error callback
+            totalCountDisplay.text("?");
+            // Remove spinning animation
+            icon.removeClass("fa-spin");
+            button.prop("disabled", false);
+          }
+        );
       });
     },
     initializePaginationEvents: function () {
@@ -2929,6 +2932,7 @@ Vtiger.Class(
               "data-field-id",
               sourceFieldEle.attr("data-field-id")
             );
+            targetFieldEle.attr("data-is-fixed", "0");
             targetFieldEle
               .find(".fieldLabel")
               .html(sourceFieldEle.find(".fieldLabel").html());
@@ -2936,19 +2940,51 @@ Vtiger.Class(
             sourceFieldEle.addClass("hide");
           });
 
+          // Handle fixed column checkbox - limit to 3 columns
+          selectedFieldsList.on("change", ".fixedColumnCheckbox", function (e) {
+            var checkbox = jQuery(e.currentTarget);
+            var checkedCount = selectedFieldsList.find(
+              ".fixedColumnCheckbox:checked"
+            ).length;
+
+            if (checkbox.is(":checked") && checkedCount > 3) {
+              checkbox.prop("checked", false);
+              app.helper.showAlertNotification({
+                message:
+                  app.vtranslate("JS_MAXIMUM_3_FIXED_COLUMNS_ALLOWED") ||
+                  "Maximum 3 columns can be fixed",
+              });
+              return false;
+            }
+
+            // Update data attribute
+            var listItem = checkbox.closest(".item");
+            listItem.attr("data-is-fixed", checkbox.is(":checked") ? "1" : "0");
+          });
+
           var configColumnsForm = container.find(".configColumnsForm");
           var params = {
             submitHandler: function (form) {
               var formData = jQuery(form).serializeFormData();
               var columnsList = [];
+              var fixedColumnsList = [];
               var selectedFieldEles = selectedFieldsList.find(".item");
               jQuery.each(selectedFieldEles, function (i, e) {
                 var ele = jQuery(e);
-                columnsList.push(ele.attr("data-cv-columnname"));
+                var columnName = ele.attr("data-cv-columnname");
+                var isFixed =
+                  ele.attr("data-is-fixed") === "1" ||
+                  ele.find(".fixedColumnCheckbox").is(":checked");
+
+                columnsList.push(columnName);
+                if (isFixed) {
+                  fixedColumnsList.push(columnName);
+                }
               });
 
               formData.source_module = app.module();
               formData.columnslist = JSON.stringify(columnsList);
+              formData.fixedcolumns = JSON.stringify(fixedColumnsList);
               app.helper.showProgress();
               app.request.post({ data: formData }).then(function (err, res) {
                 app.helper.hideProgress();
@@ -3093,6 +3129,109 @@ Vtiger.Class(
       setTimeout(function () {
         thisInstance.autoLoadTotalCount();
       }, 500);
+
+      // Setup fixed columns
+      console.log("Calling setupFixedColumns from registerEvents...");
+      this.setupFixedColumns();
+    },
+
+    /**
+     * Setup fixed columns positioning
+     */
+    setupFixedColumns: function () {
+      console.log("setupFixedColumns called!");
+      var thisInstance = this;
+
+      setTimeout(function () {
+        var $table = jQuery("#listview-table");
+        console.log("Table found:", $table.length);
+        if ($table.length == 0) return;
+
+        console.log("Setting up fixed columns container...");
+
+        // Force table container properties
+        $table.closest(".table-container, #table-content").css({
+          "overflow-x": "auto",
+          "overflow-y": "visible",
+          position: "relative",
+          "max-width": "100%",
+        });
+
+        // Ensure table properties
+        $table.css({
+          "table-layout": "fixed",
+          "border-collapse": "separate",
+          "border-spacing": "0",
+          "min-width": "1200px",
+        });
+
+        // Force CSS on fixed columns
+        var $fixedColumns = $table.find(".fixed-column");
+        $fixedColumns.each(function () {
+          jQuery(this).css({
+            position: "sticky",
+            left: "0px",
+            "z-index": "999",
+            "background-color": "#ffffff",
+            "border-right": "2px solid #007cba",
+            "box-shadow": "2px 0 5px rgba(0,0,0,0.15)",
+          });
+        });
+
+        // Special styling for headers (including floatThead)
+        $table.find("thead .fixed-column").css({
+          position: "sticky",
+          left: "0px",
+          "background-color": "#f8f9fa",
+          "z-index": "1000",
+          "font-weight": "bold",
+        });
+
+        // Also target floatThead wrapper elements
+        jQuery(".floatThead-floatContainer table thead .fixed-column").css({
+          position: "sticky",
+          left: "0px",
+          "background-color": "#f8f9fa",
+          "z-index": "1000",
+          "font-weight": "bold",
+        });
+
+        // Special styling for search row
+        $table.find(".searchRow .fixed-column").css({
+          position: "sticky",
+          left: "0px",
+          "background-color": "#f8f9fa",
+          "z-index": "999",
+        });
+
+        jQuery(
+          ".floatThead-floatContainer table thead .searchRow .fixed-column"
+        ).css({
+          position: "sticky",
+          left: "0px",
+          "background-color": "#f8f9fa",
+          "z-index": "999",
+        });
+
+        // Debug: Check if fixed columns exist
+        var fixedCount = $fixedColumns.length;
+        console.log("Found " + fixedCount + " fixed column elements");
+        console.log("Applied CSS to fixed columns");
+
+        // Fix scrollbar z-index to appear above fixed columns
+        setTimeout(function () {
+          jQuery(
+            ".ps-scrollbar-x, .ps-scrollbar-x-rail, .ps-scrollbar-y, .ps-scrollbar-y-rail"
+          ).css({
+            "z-index": "1001",
+          });
+          console.log("Applied z-index to scrollbars");
+        }, 200);
+
+        if (fixedCount > 0) {
+          console.log("Fixed columns setup complete");
+        }
+      }, 100);
     },
     registerHeaderReflowOnListSearchSelections: function () {
       var listViewContentDiv = this.getListViewContainer();
@@ -3286,3 +3425,17 @@ Vtiger.Class(
     },
   }
 );
+
+// Test fixed columns on document ready
+jQuery(document).ready(function () {
+  console.log("Document ready - testing fixed columns...");
+  setTimeout(function () {
+    var listInstance = Vtiger_List_Js.getInstance();
+    if (listInstance && typeof listInstance.setupFixedColumns === "function") {
+      console.log("Calling setupFixedColumns directly...");
+      listInstance.setupFixedColumns();
+    } else {
+      console.log("List instance or setupFixedColumns not found");
+    }
+  }, 500);
+});

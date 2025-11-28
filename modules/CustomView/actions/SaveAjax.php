@@ -48,8 +48,9 @@ class CustomView_SaveAjax_Action extends CustomView_Save_Action {
 		$response = new Vtiger_Response();
 		if ($customViewModel) {
 			$selectedColumns = $request->get('columnslist');
+			$fixedColumns = $request->get('fixedcolumns');
 			$customViewModel->deleteSelectedFields();
-			$customViewModel->saveSelectedFields($selectedColumns);
+			$customViewModel->saveSelectedFields($selectedColumns, $fixedColumns);
 			/**
 			 * We are setting list_headers in session when we manage columns.
 			 * we should clear this from session in order to apply view

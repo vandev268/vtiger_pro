@@ -116,7 +116,7 @@ $allow_exports = 'all';
 $upload_badext = array('php', 'php3', 'php4', 'php5', 'pl', 'cgi', 'py', 'asp', 'cfm', 'js', 'vbs', 'html', 'htm', 'exe', 'bin', 'bat', 'sh', 'dll', 'phps', 'phtml', 'xhtml', 'rb', 'msi', 'jsp', 'shtml', 'sth', 'shtm', 'htaccess', 'phar');
 
 // list_max_entries_per_page default value = 20
-$list_max_entries_per_page = '100';
+$list_max_entries_per_page = '10';
 
 // history_max_viewed default value = 5
 $history_max_viewed = '100';

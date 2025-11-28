@@ -873,3 +873,107 @@ body {
   left: -100px !important;
   position: relative !important;
 }
+
+/* Fixed Columns CSS - Force Override */
+div#table-content.table-container {
+  overflow-x: auto !important;
+  overflow-y: visible !important;
+  max-width: 100% !important;
+  position: relative !important;
+}
+
+table#listview-table.table.listview-table {
+  table-layout: fixed !important;
+  border-collapse: separate !important;
+  border-spacing: 0 !important;
+  min-width: 1200px !important;
+}
+
+table#listview-table.table.listview-table th.fixed-column,
+table#listview-table.table.listview-table td.fixed-column {
+  position: -webkit-sticky !important;
+  position: sticky !important;
+  left: 0px !important;
+  z-index: 999 !important;
+  background-color: #ffffff !important;
+  border-right: 2px solid #007cba !important;
+  box-shadow: 2px 0 5px rgba(0, 0, 0, 0.15) !important;
+  min-width: 150px !important;
+  max-width: 200px !important;
+}
+
+table#listview-table.table.listview-table thead th.fixed-column {
+  background-color: #f8f9fa !important;
+  z-index: 1000 !important;
+  font-weight: bold !important;
+}
+
+table#listview-table.table.listview-table tbody td.fixed-column {
+  background-color: #ffffff !important;
+}
+
+table#listview-table.table.listview-table .searchRow th.fixed-column {
+  background-color: #f8f9fa !important;
+  z-index: 999 !important;
+  position: -webkit-sticky !important;
+  position: sticky !important;
+  left: 0px !important;
+}
+
+/* Fix header row fixed columns */
+table#listview-table.table.listview-table
+  thead
+  tr.listViewContentHeader
+  th.fixed-column {
+  position: -webkit-sticky !important;
+  position: sticky !important;
+  left: 0px !important;
+  z-index: 1000 !important;
+  background-color: #f8f9fa !important;
+}
+
+/* FloatThead wrapper fixed columns */
+.floatThead-floatContainer table thead tr.listViewContentHeader th.fixed-column,
+.floatThead-wrapper
+  .floatThead-floatContainer
+  table
+  thead
+  tr.listViewContentHeader
+  th.fixed-column {
+  position: -webkit-sticky !important;
+  position: sticky !important;
+  left: 0px !important;
+  z-index: 1000 !important;
+  background-color: #f8f9fa !important;
+}
+
+.floatThead-floatContainer table thead tr.searchRow th.fixed-column,
+.floatThead-wrapper
+  .floatThead-floatContainer
+  table
+  thead
+  tr.searchRow
+  th.fixed-column {
+  position: -webkit-sticky !important;
+  position: sticky !important;
+  left: 0px !important;
+  z-index: 999 !important;
+  background-color: #f8f9fa !important;
+}
+
+/* Fix scrollbar z-index to appear above fixed columns */
+.ps-scrollbar-x,
+.ps-scrollbar-x-rail,
+.ps-scrollbar-y,
+.ps-scrollbar-y-rail {
+  z-index: 1001 !important;
+}
+
+/* Ensure horizontal scrollbar is visible */
+.table-container .ps-scrollbar-x {
+  z-index: 1001 !important;
+}
+
+.table-container .ps-scrollbar-x-rail {
+  z-index: 1001 !important;
+}

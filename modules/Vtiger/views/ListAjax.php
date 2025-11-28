@@ -96,8 +96,21 @@ class Vtiger_ListAjax_View extends Vtiger_List_View {
 		}
 
 		$selectedFields = array();
-		foreach ($cvSelectedFields as $cvFieldName) {
-			$selectedFields[$cvFieldName] = isset($cvSelectedFieldModelsMapping[$cvFieldName]) ? $cvSelectedFieldModelsMapping[$cvFieldName] : '';
+		foreach ($cvSelectedFields as $fieldData) {
+			// Handle both old format (string) and new format (array)
+			if(is_array($fieldData)) {
+				$cvFieldName = $fieldData['columnname'];
+				$isFixed = $fieldData['is_fixed'];
+			} else {
+				$cvFieldName = $fieldData;
+				$isFixed = 0;
+			}
+			
+			if(isset($cvSelectedFieldModelsMapping[$cvFieldName])) {
+				$fieldModel = $cvSelectedFieldModelsMapping[$cvFieldName];
+				$fieldModel->set('is_fixed', $isFixed);
+				$selectedFields[$cvFieldName] = $fieldModel;
+			}
 		}
 
 		$viewer->assign('CV_MODEL',$cvModel);

@@ -142,6 +142,30 @@ class Vtiger_ListView_Model extends Vtiger_Base_Model {
 		$module = $this->getModule();
 		$headerFieldModels = array();
 		$headerFields = $listViewContoller->getListViewHeaderFields();
+		
+		// Get fixed columns information from custom view
+		$cvId = $this->get('viewid');
+		if(empty($cvId)) {
+			$customView = new CustomView();
+			$cvId = $customView->getViewId($module->get('name'));
+		}
+		$customViewModel = CustomView_Record_Model::getInstanceById($cvId);
+		$selectedFields = $customViewModel->getSelectedFields();
+		$fixedColumns = array();
+		foreach($selectedFields as $fieldData) {
+			if(isset($fieldData['is_fixed']) && $fieldData['is_fixed'] == '1') {
+				// Try multiple key formats to match field names
+				$columnName = $fieldData['columnname'];
+				$fixedColumns[$columnName] = true;
+				
+				// Also add simplified field name (last part after :)
+				$parts = explode(':', $columnName);
+				if(count($parts) >= 3) {
+					$fieldName = $parts[2]; // Get field name part
+					$fixedColumns[$fieldName] = true;
+				}
+			}
+		}
 		foreach($headerFields as $fieldName => $webserviceField) {
 			if($webserviceField && !in_array($webserviceField->getPresence(), array(0,2))) continue;
 			if($webserviceField && isset($webserviceField->parentReferenceField) && !in_array($webserviceField->parentReferenceField->getPresence(), array(0,2))){
@@ -169,6 +193,13 @@ class Vtiger_ListView_Model extends Vtiger_Base_Model {
 				$fieldInstance = Vtiger_Field_Model::getInstance($fieldName,$module);
 				$fieldInstance->set('listViewRawFieldName', $fieldInstance->get('column'));
 				$headerFieldModels[$fieldName] = $fieldInstance;
+			}
+			
+			// Set is_fixed property for the field
+			if(isset($fixedColumns[$fieldName])) {
+				$headerFieldModels[$fieldName]->set('is_fixed', true);
+			} else {
+				$headerFieldModels[$fieldName]->set('is_fixed', false);
 			}
 		}
 		return $headerFieldModels;

@@ -148,4 +148,48 @@ class ModTracker_Record_Model extends Vtiger_Record_Model {
         $result = $db->pquery("SELECT COUNT(*) AS count FROM vtiger_modtracker_basic WHERE crmid = ?", array($recordId));
         return $db->query_result($result, 0, 'count');
 	}
+
+	/**
+	 * Function to get recent activities for a record
+	 * @param <Integer> $parentRecordId - Parent record id
+	 * @param <Vtiger_Paging_Model> $pagingModel - Paging model
+	 * @return <Array> - List of ModTracker_Record_Model instances
+	 */
+	public static function getRecentActivities($parentRecordId, $pagingModel) {
+		$db = PearDatabase::getInstance();
+		$recordInstances = array();
+
+		// Get module name for the parent record
+		$moduleQuery = "SELECT setype FROM vtiger_crmentity WHERE crmid = ?";
+		$moduleResult = $db->pquery($moduleQuery, array($parentRecordId));
+		if($db->num_rows($moduleResult) > 0) {
+			$moduleName = $db->query_result($moduleResult, 0, 'setype');
+		} else {
+			return $recordInstances; // Return empty if record not found
+		}
+
+		$startIndex = $pagingModel->getStartIndex();
+		$pageLimit = $pagingModel->getPageLimit();
+
+		$listQuery = "SELECT * FROM vtiger_modtracker_basic WHERE crmid = ? AND module = ? ".  
+						" ORDER BY changedon DESC, id DESC LIMIT $startIndex, $pageLimit";
+
+		$result = $db->pquery($listQuery, array($parentRecordId, $moduleName));
+		$rows = $db->num_rows($result);
+
+		for ($i=0; $i<$rows; $i++) {
+			$row = $db->query_result_rowdata($result, $i);
+			$recordInstance = new self();
+			$recordInstance->setData($row)->setParent($row['crmid'], $row['module']);
+			$recordInstances[] = $recordInstance;
+		}
+
+		// Set total count for paging
+		$countQuery = "SELECT COUNT(*) as count FROM vtiger_modtracker_basic WHERE crmid = ? AND module = ?";
+		$countResult = $db->pquery($countQuery, array($parentRecordId, $moduleName));
+		$totalCount = $db->query_result($countResult, 0, 'count');
+		$pagingModel->set('totalCount', $totalCount);
+
+		return $recordInstances;
+	}
 }

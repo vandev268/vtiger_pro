@@ -26,7 +26,11 @@
 									{foreach item=FIELD_MODEL from=$SELECTED_FIELDS}
 										{if $FIELD_MODEL and $FIELD_MODEL->getDisplayType() neq '6'}
 											{assign var=FIELD_MODULE_NAME value={$FIELD_MODEL->getModule()->getName()}}
-											<li class="item" data-cv-columnname="{$FIELD_MODEL->getCustomViewColumnName()}" data-columnname="{$FIELD_MODEL->get('column')}" data-field-id='{$FIELD_MODEL->getId()}'>
+											{assign var=IS_FIXED value=$FIELD_MODEL->get('is_fixed')|default:0}
+											<li class="item" data-cv-columnname="{$FIELD_MODEL->getCustomViewColumnName()}" data-columnname="{$FIELD_MODEL->get('column')}" data-field-id='{$FIELD_MODEL->getId()}' data-is-fixed="{$IS_FIXED}">
+												<span class="fixedCheckboxContainer" style="display:inline-block;width:25px;">
+													<input type="checkbox" class="fixedColumnCheckbox" {if $IS_FIXED eq 1}checked{/if} title="{vtranslate('LBL_FIX_COLUMN',$MODULE)}">
+												</span>
 												<span class="dragContainer">
 													<img src="{vimage_path('drag.png')}" class="cursorPointerMove" border="0" title="{vtranslate('LBL_DRAG',$MODULE)}">
 												</span>
@@ -37,6 +41,9 @@
 									{/foreach}
 								</ul>
 								<li class="item-dummy hide">
+									<span class="fixedCheckboxContainer" style="display:inline-block;width:25px;">
+										<input type="checkbox" class="fixedColumnCheckbox" title="{vtranslate('LBL_FIX_COLUMN',$MODULE)}">
+									</span>
 									<span class="dragContainer">
 										<img src="{vimage_path('drag.png')}" class="cursorPointerMove" border="0" title="{vtranslate('LBL_DRAG',$MODULE)}">
 									</span>

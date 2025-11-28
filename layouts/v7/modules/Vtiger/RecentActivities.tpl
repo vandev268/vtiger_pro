@@ -25,8 +25,9 @@
                             {if $RECENT_ACTIVITY->isCreate()}
                                 <li>
                                     <time class="update_time cursorDefault">
-                                        <small title="{Vtiger_Util_Helper::formatDateTimeIntoDayString($RECENT_ACTIVITY->getParent()->get('createdtime'))}">
-                                            {Vtiger_Util_Helper::formatDateDiffInStrings($RECENT_ACTIVITY->getParent()->get('createdtime'))}
+                                        {assign var=CREATED_TIME value=$RECENT_ACTIVITY->getParent()->get('createdtime')}
+                                        <small title="{Vtiger_Util_Helper::formatDateTimeIntoDayString($CREATED_TIME)}">
+                                            {$CREATED_TIME|date_format:'%H:%M, %d/%m/%Y'}
                                         </small>
                                     </time>
                                     {assign var=USER_MODEL value=$RECENT_ACTIVITY->getModifiedBy()}
@@ -53,8 +54,9 @@
                             {else if $RECENT_ACTIVITY->isUpdate()}
                                 <li>
                                     <time class="update_time cursorDefault">
-                                        <small title="{Vtiger_Util_Helper::formatDateTimeIntoDayString($RECENT_ACTIVITY->getActivityTime())}">
-                                            {Vtiger_Util_Helper::formatDateDiffInStrings($RECENT_ACTIVITY->getActivityTime())}
+                                        {assign var=ACTIVITY_TIME value=$RECENT_ACTIVITY->getActivityTime()}
+                                        <small title="{Vtiger_Util_Helper::formatDateTimeIntoDayString($ACTIVITY_TIME)}">
+                                            {$ACTIVITY_TIME|date_format:'%H:%M, %d/%m/%Y'}
                                         </small>
                                     </time>
                                     {assign var=USER_MODEL value=$RECENT_ACTIVITY->getModifiedBy()}
@@ -133,8 +135,9 @@
                                 {assign var=RELATED_MODULE value= $RELATION->getLinkedRecord()->getModuleName()}
                                 <li>
                                     <time class="update_time cursorDefault">
-                                        <small title="{Vtiger_Util_Helper::formatDateTimeIntoDayString($RELATION->get('changedon'))}">
-                                            {Vtiger_Util_Helper::formatDateDiffInStrings($RELATION->get('changedon'))} </small>
+                                        {assign var=CHANGE_TIME value=$RELATION->get('changedon')}
+                                        <small title="{Vtiger_Util_Helper::formatDateTimeIntoDayString($CHANGE_TIME)}">
+                                            {$CHANGE_TIME|date_format:'%H:%M, %d/%m/%Y'} </small>
                                     </time>
 									<div class="update_icon bg-info-{$RELATED_MODULE|strtolower}">
 										{if {$RELATED_MODULE|strtolower eq 'modcomments'}}
